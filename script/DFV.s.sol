@@ -2,17 +2,23 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Counter} from "../src/Counter.sol";
+import {DFV} from "../src/DFV.sol";
 
-contract CounterScript is Script {
-    Counter public counter;
+contract DeployDFV is Script {
+    DFV public dfv;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
 
-        counter = new Counter();
+        dfv = new DFV(
+            "DeepFuckinValue",
+            "DFV",
+            address(0),
+            address(0),
+            address(0)
+        );
 
         vm.stopBroadcast();
     }
