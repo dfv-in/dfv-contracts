@@ -10,7 +10,7 @@ contract DAO is AccessControl {
     /// enum for identifying tiers
     enum DFVTiers {
         // first value in Enum is the default value
-        CommunityAirdrop,
+        Community,
         BlindBelievers,
         EthernalHodlers,
         DiamondHands,
@@ -76,7 +76,10 @@ contract DAO is AccessControl {
         if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
             revert InvalidRole(DEFAULT_ADMIN_ROLE, _msgSender());
         }
-        if (tierRank == 1) {
+        if(tierRank == 0) {
+            MemberTiers[member] = DFVTiers.Community;
+        }
+        else if (tierRank == 1) {
             MemberTiers[member] = DFVTiers.BlindBelievers;
         } else if (tierRank == 2) {
             MemberTiers[member] = DFVTiers.EthernalHodlers;
@@ -148,7 +151,7 @@ contract DAO is AccessControl {
         // all else are from community airdrops
         else {
             // burn 99% of the balance
-            return balance * 99 / 100;
+            return 0;
         }
     }
 }

@@ -1,0 +1,85 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import {Test, console} from "forge-std/Test.sol";
+import {DFV} from "../src/DFV.sol";
+import {DAO} from "../src/DAO.sol";
+import {Utils} from "./utils/Utils.sol";
+
+contract DFVTest is Test {
+    DFV public dfv;
+    DAO public dao;
+    Utils public utils;
+    address payable[] public users;
+    address foundation;
+
+    function dfvDaoSetup() public {
+        users = utils.addUsers(2, users);
+        foundation = users[4];
+
+        dfv = new DFV("DeepFuckinValue", "DFV", address(this), foundation, address(dao));
+        dao = new DAO();
+
+        dao.initialize(address(dfv), foundation);
+    }
+
+
+    // DAO can set exchange whitelist
+    function testDAOCanSetExchangeWhitelist() public {
+        dfv.setExchangeWhitelist(address(this), true);
+        assert(dfv.exchangeWhitelist(address(this)), "Exchange whitelist not set");
+    }
+
+    // DAO can set allowed sell amount
+    function testDAOCanSetAllowedSellAmount() public {
+        dfv.setAllowedSellAmount(address(this), 100);
+        assert(dfv.sellAllowance(address(this)) == 100, "Sell allowance not set");
+    }
+
+    // DAO can set OTC whitelist amount
+    function testDAOCanSetOTCWhitelistAmount() public {
+        dfv.setOTCWhitelist(address(this), address(this), 100);
+        assert(dfv.otcWhitelist(address(this), address(this)) == 100, "OTC whitelist not set");
+    }
+
+    // DAO can set OTC whitelist to all receivers in case of token sale with limited amount
+    function testDAOCanSetOTCWhitelistToAllReceivers() public {
+        dfv.setOTCWhitelist(address(this), address(0), 100);
+        assert(dfv.otcWhitelist(address(this), address(0)) == 100, "OTC whitelist not set to all receivers");
+    }
+
+    // DFV can send tokens with OTC whitelist
+    function testDFVCanSendTokensWithOTCWhitelist() public {
+        dfvDaoSetup();
+        dfv.setOTCWhitelist(address(this), address(this), 100);
+        dfv.mint(address(this), 1000);
+        dfv.transfer(address(this), 100);
+        assert(dfv.balanceOf(address(this)) == 900, "Balance not deducted");
+    }
+
+    // DFV can be minted with only max supply
+    function testDFVCanBeMintedWithOnlyMaxSupply() public {
+        dfvDaoSetup();
+        dfv.mint(address(this), 1000);
+        assert(dfv.totalSupply() == 1000, "Total supply not set");
+
+    }
+
+    // DFV has penalty logic on unauthorized sales by OTC whitelist
+    function testDFVHasPenaltyLogicOnUnauthorizedSalesByOTCWhitelist() public {
+        dfvDaoSetup();
+        dfv.setOTCWhitelist(address(this), address(this), 100);
+        dfv.mint(address(this), 1000);
+        dfv.transfer(address(this), 100);
+        assert(dfv.balanceOf(address(this)) == 900, "Balance not deducted");
+    }
+
+    // DFV does not have penalty logic on community
+    function testDFVDoesNotHavePenaltyLogicOnCommunity() public {
+        dfvDaoSetup();
+        dfv.mint(address(this), 1000);
+        dfv.transfer(address(this), 100);
+        assert(dfv.balanceOf(address(this)) == 900, "Balance deducted");
+
+    }
+}
