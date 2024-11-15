@@ -2,6 +2,9 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
 
 remappings = [
     '@layerzerolabs/oft-evm/=lib/devtools/packages/oft-evm/',
