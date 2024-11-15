@@ -9,7 +9,7 @@ import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 
 /// @custom:oz-upgrades-from DFV
-contract DFVV2 is
+contract DFVV3 is
     Initializable,
     ERC20Upgradeable,
     ERC20PermitUpgradeable,
@@ -26,7 +26,7 @@ contract DFVV2 is
         _disableInitializers();
         __ERC20_init("DeepFuckinValue", "DFV");
         __AccessControl_init();
-        __ERC20Permit_init("DFVV2");
+        __ERC20Permit_init("DFVV3");
         __UUPSUpgradeable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _mint(msg.sender, 1000000 * 10 ** decimals());
