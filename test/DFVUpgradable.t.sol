@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../src/MyToken.sol";
 import "forge-std/console.sol";
+import "../src/MyTokenV2.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
@@ -43,5 +44,14 @@ contract MyTokenTest is Test {
     function testUpgradeability() public {
         // Upgrade the proxy to a new version; MyTokenV2
         Upgrades.upgradeProxy(address(proxy), "MyTokenV2.sol:MyTokenV2", "", owner);
+        // test whether the new contract is upgraded
+
+        MyTokenV2 myToken2 = MyTokenV2(address(proxy));
+
+        // Owner should be able to mint tokens
+        vm.prank(owner);
+        myToken2.mint(address(2), 1000);
+
+
     }
 }
