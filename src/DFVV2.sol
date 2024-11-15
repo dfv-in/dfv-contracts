@@ -8,8 +8,8 @@ import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.s
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 
-/// @custom:oz-upgrades-from MyToken
-contract MyTokenV2 is
+/// @custom:oz-upgrades-from DFV
+contract DFVV2 is
     Initializable,
     ERC20Upgradeable,
     ERC20PermitUpgradeable,
@@ -22,9 +22,9 @@ contract MyTokenV2 is
 
     function initialize(address initialOwner) public initializer {
         _disableInitializers();
-        __ERC20_init("MyTokenV2", "MTKV2");
+        __ERC20_init("DeepFuckinValue", "DFV");
         __AccessControl_init();
-        __ERC20Permit_init("MyTokenV2");
+        __ERC20Permit_init("DFVV2");
         __UUPSUpgradeable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _mint(msg.sender, 1000000 * 10 ** decimals());
