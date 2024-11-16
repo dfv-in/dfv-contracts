@@ -29,7 +29,7 @@ contract DeployDFVProxy is Deployer {
         // Log the proxy address
         console.log("UUPS Proxy Address:", address(proxy));
         
-        DFV(address(proxy)).mint(address(0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448), 1000 * 1e18);
+        DFV(address(proxy)).mint(address(0xdF80e38699bb963a91c5F04F83378A597995932a), 67_337_400_000 * 1e18);
 
          // Stop broadcasting calls from our address
         vm.stopBroadcast();
