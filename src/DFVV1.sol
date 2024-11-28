@@ -24,6 +24,10 @@ contract DFV is Initializable, ERC20Upgradeable, AccessControlUpgradeable, ERC20
     function mint(address to, uint256 amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _mint(to, amount);
     }
+    
+    function burn(uint256 amount) public {
+        _burn(_msgSender(), amount);
+    }
 
     function _authorizeUpgrade(address newImplementation)
         internal

@@ -29,7 +29,6 @@ contract DFVV2 is
         __ERC20Permit_init("DFVV2");
         __UUPSUpgradeable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
-        _mint(msg.sender, 1000000 * 10 ** decimals());
     }
 
     function mint(address to, uint256 amount) public {
@@ -37,6 +36,10 @@ contract DFVV2 is
             revert InvalidRole(DEFAULT_ADMIN_ROLE, _msgSender());
         }
         _mint(to, amount);
+    }
+
+    function burn(uint256 amount) public {
+        _burn(_msgSender(), amount);
     }
 
     /// @dev Function to store an address

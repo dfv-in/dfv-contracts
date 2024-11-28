@@ -14,7 +14,7 @@ contract DFVTest is Test {
     address foundation;
 
     function dfvDaoSetup() public {
-        users = utils.addUsers(2, users);
+        users = utils.addUsers(2, users);h
         foundation = users[4];
 
         dfv = new DFV("DeepFuckinValue", "DFV", address(this), foundation, address(dao));
