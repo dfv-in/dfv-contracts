@@ -17,7 +17,8 @@ contract DFVV4 is
     AccessControlUpgradeable
 {
     /// address value to represent all addresses in whitelist
-    address constant ALL = address(1);
+    address constant ALL_ADDRESSES = address(1);
+    uint256 constant INFINITY = type(uint256).max;
     /// total supply of the token
     uint256 private constant MAX_SUPPLY = 138_840_000_000 * 10 ** 18; // 138.84 billion tokens with 18 decimals
 
@@ -50,6 +51,7 @@ contract DFVV4 is
     event ExchangeAllowed(address exchange, bool isAllowed);
     event SellAllowed(address exchange, uint256 amount);
     event TierSet(address member, uint256 tierRank);
+    event applyPenalty(address from, uint256 amount);
 
     /// errors
     error OTCNotAllowed(
@@ -61,11 +63,14 @@ contract DFVV4 is
     error InvalidRole(bytes32 role, address sender);
     error MaxSupplyReached(uint256 currentSupply, uint256 newSupply);
 
-    function initialize(address initialOwner) public initializer {
+    constructor() {
         _disableInitializers();
+    }
+
+    function initialize(address initialOwner) public initializer {
         __ERC20_init("DeepFuckinValue", "DFV");
         __AccessControl_init();
-        __ERC20Permit_init("DFVV3");
+        __ERC20Permit_init("DFVV4");
         __UUPSUpgradeable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
     }
@@ -100,8 +105,24 @@ contract DFVV4 is
         if (burnAmount > 0) {
             // burn token from owner
             _burn(msg.sender, burnAmount);
+            emit applyPenalty(owner, burnAmount);
         }
         _transfer(owner, to, value - burnAmount);
+        return true;
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) public virtual override returns (bool) {
+        uint256 burnAmount = allowedFund(from, to, value, balanceOf(from));
+        if (burnAmount > 0) {
+            // burn token from owner
+            _burn(from, burnAmount);
+            emit applyPenalty(from, burnAmount);
+        }
+        _transfer(from, to, value - burnAmount);
         return true;
     }
 
@@ -119,12 +140,12 @@ contract DFVV4 is
         emit OTCAllowed(from, to, amount);
     }
 
-    function setExchangeWhitelist(address exchange, bool isAllowed) external {
+    function setExchangeWhitelist(address exchange, bool isExchange) external {
         if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
             revert InvalidRole(DEFAULT_ADMIN_ROLE, _msgSender());
         }
-        ExchangeWhiteLists[exchange] = isAllowed;
-        emit ExchangeAllowed(exchange, isAllowed);
+        ExchangeWhiteLists[exchange] = isExchange;
+        emit ExchangeAllowed(exchange, isExchange);
     }
 
     function setSellAllowance(address exchange, uint256 amount) external {
@@ -176,13 +197,13 @@ contract DFVV4 is
         // 2. check if from, to is OTC whitelisted
         else {
             // check if from is allowed to send token to all
-            if (OTCAllowance[from][ALL] > 0) {
+            if (OTCAllowance[from][ALL_ADDRESSES] > 0) {
                 // check if sending amount exceeds allowed amount, if not revert
-                if (OTCAllowance[from][ALL] < value) {
+                if (OTCAllowance[from][ALL_ADDRESSES] < value) {
                     revert OTCNotAllowed(
                         from,
                         to,
-                        OTCAllowance[from][ALL],
+                        OTCAllowance[from][ALL_ADDRESSES],
                         value
                     );
                 }
