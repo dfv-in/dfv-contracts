@@ -107,6 +107,10 @@ contract DFVV4Test is
             // reduce OTC allowance
             OTCAllowance[owner][to] -= value;
         } else {
+            // in case of just buying DFV from exchange, increase sell allowance
+            if(ExchangeWhiteLists[msg.sender]) {
+                SellAllowance[to] += value;
+            }
             if (burnAmount > 0) {
                 // burn token from owner
                 _burn(owner, burnAmount);
@@ -133,13 +137,18 @@ contract DFVV4Test is
             // reduce OTC allowance
             OTCAllowance[from][to] -= burnAmount;
         } else {
+            // in case of buying DFV from exchange, increase sell allowance
+            if(ExchangeWhiteLists[from]) {
+                SellAllowance[to] += value;
+            }
             if (burnAmount > 0) {
                 // burn token from owner
                 _burn(from, burnAmount);
                 emit applyPenalty(from, burnAmount);
             }
         }
-        _transfer(from, to, value - burnAmount);
+        uint sending = isOTC ? value : value - burnAmount;
+        _transfer(from, to, sending);
         return true;
     }
 
