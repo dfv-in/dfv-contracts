@@ -9,7 +9,7 @@ import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 
 /// @custom:oz-upgrades-from DFV
-contract DFVV4 is
+contract DFVV4Test is
     Initializable,
     ERC20Upgradeable,
     ERC20PermitUpgradeable,
@@ -64,8 +64,11 @@ contract DFVV4 is
     error InvalidRole(bytes32 role, address sender);
     error MaxSupplyReached(uint256 currentSupply, uint256 newSupply);
 
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(address initialOwner) public initializer {
-         _disableInitializers();
         __ERC20_init("DeepFuckinValue", "DFV");
         __AccessControl_init();
         __ERC20Permit_init("DFVV4");

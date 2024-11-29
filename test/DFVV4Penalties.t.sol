@@ -6,14 +6,14 @@ import "forge-std/console.sol";
 import "../src/DFVV1.sol";
 import "../src/DFVV2.sol";
 import "../src/DFVV3.sol";
-import "../src/DFVV4.sol";
+import "../src/DFVV4Test.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {MockExchange} from "../src/mock/MockExchange.sol";
 
-contract DFVV4PenaltiesTest is Test {
-    DFVV4 dfvv4;
+contract DFVV4TestPenaltiesTest is Test {
+    DFVV4Test dfvv4;
     ERC1967Proxy proxy;
     address owner;
     address newOwner;
@@ -31,15 +31,15 @@ contract DFVV4PenaltiesTest is Test {
         owner = vm.addr(1);
 
         // Deploy the token implementation
-        DFVV4 implementation = new DFVV4();
+        DFVV4Test implementation = new DFVV4Test();
 
         // Deploy the proxy and initialize the contract through the proxy
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeCall(implementation.initialize, owner)
         );
-        // Attach the DFVV4 interface to the deployed proxy
-        dfvv4 = DFVV4(address(proxy));
+        // Attach the DFVV4Test interface to the deployed proxy
+        dfvv4 = DFVV4Test(address(proxy));
 
          // Define tier accounts
         tier1Account = vm.addr(2);

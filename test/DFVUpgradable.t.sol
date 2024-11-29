@@ -6,6 +6,7 @@ import "forge-std/console.sol";
 import "../src/DFVV1.sol";
 import "../src/DFVV2.sol";
 import "../src/DFVV3.sol";
+import "../src/DFVV4.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
@@ -102,5 +103,23 @@ contract DFVV1Test is Test {
 
         // Ensure the stored address is still accessible in DFVV3
         assertEq(dfvv3.storedAddress(), owner);
+    }
+
+    // Test that the v4 has access to the data introduced in v2
+    function testV4AccessToDataFromV2() public {
+        // Upgrade the proxy to DFVV2
+        Upgrades.upgradeProxy(address(proxy), "DFVV3.sol:DFVV3", "", owner);
+        DFVV3 dfvv3 = DFVV3(address(proxy));
+
+        // Store an address using DFVV2
+        vm.prank(owner);
+        dfvv3.storeAnAddress(owner);
+
+        // Upgrade the proxy to DFVV3
+        Upgrades.upgradeProxy(address(proxy), "DFVV4.sol:DFVV4", "", owner);
+        DFVV4 dfvv4 = DFVV4(address(proxy));
+
+        // Ensure the stored address is still accessible in DFVV3
+        assertEq(dfvv4.storedAddress(), owner);
     }
 }
