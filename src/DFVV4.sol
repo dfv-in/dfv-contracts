@@ -31,7 +31,8 @@ contract DFVV4 is
         BlindBelievers,
         EthernalHodlers,
         DiamondHands,
-        JustHodlers
+        JustHodlers,
+        Airdrops
     }
 
     /// mapping for whitelisting
@@ -96,18 +97,24 @@ contract DFVV4 is
         uint256 value
     ) public virtual override returns (bool) {
         address owner = _msgSender();
-        uint256 burnAmount = allowedFund(
+        (uint256 burnAmount, bool isOTC) = allowedFund(
             msg.sender,
             to,
             value,
             balanceOf(owner)
         );
-        if (burnAmount > 0) {
-            // burn token from owner
-            _burn(msg.sender, burnAmount);
-            emit applyPenalty(owner, burnAmount);
+        if (isOTC) {
+            // reduce OTC allowance
+            OTCAllowance[owner][to] -= value;
+        } else {
+            if (burnAmount > 0) {
+                // burn token from owner
+                _burn(owner, burnAmount);
+                emit applyPenalty(owner, burnAmount);
+            }
         }
-        _transfer(owner, to, value - burnAmount);
+        uint sending = isOTC ? value : value - burnAmount;
+        _transfer(owner, to, sending);
         return true;
     }
 
@@ -116,11 +123,21 @@ contract DFVV4 is
         address to,
         uint256 value
     ) public virtual override returns (bool) {
-        uint256 burnAmount = allowedFund(from, to, value, balanceOf(from));
-        if (burnAmount > 0) {
-            // burn token from owner
-            _burn(from, burnAmount);
-            emit applyPenalty(from, burnAmount);
+        (uint256 burnAmount, bool isOTC) = allowedFund(
+            from,
+            to,
+            value,
+            balanceOf(from)
+        );
+        if (isOTC) {
+            // reduce OTC allowance
+            OTCAllowance[from][to] -= burnAmount;
+        } else {
+            if (burnAmount > 0) {
+                // burn token from owner
+                _burn(from, burnAmount);
+                emit applyPenalty(from, burnAmount);
+            }
         }
         _transfer(from, to, value - burnAmount);
         return true;
@@ -170,6 +187,8 @@ contract DFVV4 is
             MemberTiers[member] = DFVTiers.DiamondHands;
         } else if (tierRank == 4) {
             MemberTiers[member] = DFVTiers.JustHodlers;
+        } else if (tierRank == 5) {
+            MemberTiers[member] = DFVTiers.Airdrops;
         } else {
             return;
         }
@@ -181,7 +200,7 @@ contract DFVV4 is
         address to,
         uint256 value,
         uint256 balance
-    ) public view returns (uint256 burnAmount) {
+    ) public view returns (uint256 burnAmount, bool isOTC) {
         // 1. check if to is from exchange whitelist
         if (ExchangeWhiteLists[to]) {
             // check sell amount
@@ -189,17 +208,20 @@ contract DFVV4 is
             if (value > allowed) {
                 // apply penalty
                 DFVTiers tier = MemberTiers[from];
-                return _applyPenalty(tier, balance);
+                return (_applyPenalty(tier, balance), false);
             } else {
-                return 0;
+                return (0, false);
             }
         }
         // 2. check if from, to is OTC whitelisted
         else {
             // check if from is allowed to send token to all
             if (OTCAllowance[from][ALL_ADDRESSES] > 0) {
+                if(OTCAllowance[from][ALL_ADDRESSES] == INFINITY) {
+                    return (0, true);
+                }
                 // check if sending amount exceeds allowed amount, if not revert
-                if (OTCAllowance[from][ALL_ADDRESSES] < value) {
+                else if (OTCAllowance[from][ALL_ADDRESSES] < value) {
                     revert OTCNotAllowed(
                         from,
                         to,
@@ -207,10 +229,13 @@ contract DFVV4 is
                         value
                     );
                 }
-                return 0;
+                return (value, true);
             } else {
+                if(OTCAllowance[from][to] == INFINITY) {
+                    return (0, true);
+                }
                 // check if sending amount exceeds allowed amount, if not revert
-                if (OTCAllowance[from][to] < value) {
+                else if (OTCAllowance[from][to] < value) {
                     revert OTCNotAllowed(
                         from,
                         to,
@@ -218,7 +243,7 @@ contract DFVV4 is
                         value
                     );
                 }
-                return 0;
+                return (value, true);
             }
         }
     }
@@ -249,6 +274,9 @@ contract DFVV4 is
         } else if (tier == DFVTiers.JustHodlers) {
             // burn 92% of the balance
             return (balance * 92) / 100;
+        } else if (tier == DFVTiers.Airdrops) {
+            // burn 99% of the balance
+            return (balance * 99) / 100;
         }
         // all else are from community airdrops
         else {
