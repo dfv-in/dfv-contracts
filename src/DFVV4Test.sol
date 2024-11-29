@@ -289,7 +289,7 @@ contract DFVV4Test is
         }
         // all else are from community airdrops
         else {
-            // burn 99% of the balance
+            // no penalty
             return 0;
         }
     }
