@@ -127,6 +127,11 @@ contract DFVV4Test is
         address to,
         uint256 value
     ) public virtual override returns (bool) {
+         // check allowance 
+        require(
+            value <= allowance(from, to),
+            "ERC20: transfer amount exceeds allowance"
+        );
         (uint256 burnAmount, bool isOTC) = allowedFund(
             from,
             to,

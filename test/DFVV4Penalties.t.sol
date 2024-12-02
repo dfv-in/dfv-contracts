@@ -86,6 +86,24 @@ contract DFVV4TestPenaltiesTest is Test {
         emit log_address(address(exchange));
     }
 
+    function testTransferFrominCommunity() public {
+        vm.startPrank(owner);
+        // Mint tokens to tier 0 account and assert the balance
+        dfvv4.mint(tier0Account, 1000);
+        assertEq(dfvv4.balanceOf(tier0Account), 1000);
+        vm.stopPrank();
+        vm.prank(tier0Account);
+        vm.expectRevert();
+        dfvv4.transferFrom(tier0Account, tier1Account, 100);
+        // check balance of tier0 account
+        assertEq(dfvv4.balanceOf(tier0Account), 1000);
+        // approve the transfer
+        vm.prank(tier0Account);
+        dfvv4.approve(tier1Account, 100);
+        dfvv4.transferFrom(tier0Account, tier1Account, 100);
+        assertEq(dfvv4.balanceOf(tier0Account), 900);
+    }
+
     function testUnauthorizedTokenTransferByCommunityWorks() public {
         vm.startPrank(owner);
         // Mint tokens to tier 0 account and assert the balance
