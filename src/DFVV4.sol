@@ -102,7 +102,7 @@ contract DFVV4 is
         );
         if (isOTC) {
             // reduce OTC allowance
-            OTCAllowance[owner][to] -= value;
+            OTCAllowance[owner][to] -= burnAmount;
         } else {
             // in case of just buying DFV from exchange, increase sell allowance
             if (ExchangeWhiteLists[msg.sender]) {
