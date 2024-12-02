@@ -221,6 +221,10 @@ contract DFVV4 is
         }
         // 2. check if from, to is OTC whitelisted
         else {
+            DFVTiers fromTier = MemberTiers[from];
+            if(fromTier == DFVTiers.Community) {
+                return (0, true);
+            }
             // check if from is allowed to send token to all
             if (OTCAllowance[from][ALL_ADDRESSES] > 0) {
                 if (OTCAllowance[from][ALL_ADDRESSES] == INFINITY) {

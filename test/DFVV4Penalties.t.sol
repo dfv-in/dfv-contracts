@@ -22,6 +22,7 @@ contract DFVV4TestPenaltiesTest is Test {
     address tier3Account;
     address tier4Account;
     address tier5Account;
+    address tier0Account;
     MockExchange exchange;
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
 
@@ -41,12 +42,13 @@ contract DFVV4TestPenaltiesTest is Test {
         // Attach the DFVV4Test interface to the deployed proxy
         dfvv4 = DFVV4Test(address(proxy));
 
-         // Define tier accounts
+        // Define tier accounts
         tier1Account = vm.addr(2);
         tier2Account = vm.addr(3);
         tier3Account = vm.addr(4);
         tier4Account = vm.addr(5);
         tier5Account = vm.addr(6);
+        tier0Account = vm.addr(7);
 
         // Define exchange address
         exchange = new MockExchange();
@@ -76,11 +78,23 @@ contract DFVV4TestPenaltiesTest is Test {
 
         // Emit the owner address for debugging purposes
         emit log_address(owner);
+        emit log_address(tier0Account);
         emit log_address(tier1Account);
         emit log_address(tier2Account);
         emit log_address(tier3Account);
         emit log_address(tier4Account);
         emit log_address(address(exchange));
+    }
+
+    function testUnauthorizedTokenTransferByCommunityWorks() public {
+        vm.startPrank(owner);
+        // Mint tokens to tier 0 account and assert the balance
+        dfvv4.mint(tier0Account, 1000);
+        assertEq(dfvv4.balanceOf(tier0Account), 1000);
+        vm.stopPrank();
+        vm.prank(tier0Account);
+        dfvv4.transfer(tier1Account, 100);
+        assertEq(dfvv4.balanceOf(tier0Account), 900);
     }
 
     // Test the basic ERC20 functionality of the DFVV1 contract
@@ -129,7 +143,6 @@ contract DFVV4TestPenaltiesTest is Test {
      *
      */
     function testUnauthorizedTokenTransferByTier2Burns() public {
-
         // Impersonate the owner to call mint function
         vm.startPrank(owner);
         // Mint tokens to tier 2 account and assert the balance
@@ -162,7 +175,6 @@ contract DFVV4TestPenaltiesTest is Test {
      */
     // Thest the persistance of the previous data
     function testUnauthorizedTokenTransferByTier3Burns() public {
-
         // Impersonate the owner to call mint function
         vm.startPrank(owner);
         // Mint tokens to tier 3 account and assert the balance
@@ -193,7 +205,6 @@ contract DFVV4TestPenaltiesTest is Test {
      * An event is emitted indicating the burn.
      */
     function testUnauthorizedTokenTransferByTier4Burns() public {
-
         // Impersonate the owner to call mint function
         vm.startPrank(owner);
         // Mint tokens to tier 4 account and assert the balance
@@ -254,7 +265,7 @@ contract DFVV4TestPenaltiesTest is Test {
      * A standard transfer event is emitted.
      */
     function testAuthorizedTransferAfterLockUpPeriod() public {
-         // Impersonate the owner to call mint function
+        // Impersonate the owner to call mint function
         vm.startPrank(owner);
         // Mint tokens to tier 5 account and assert the balance
         dfvv4.mint(tier5Account, 1000);
@@ -333,7 +344,7 @@ contract DFVV4TestPenaltiesTest is Test {
         dfvv4.setOTCAllowance(tier2Account, tier3Account, 1000);
         dfvv4.setOTCAllowance(tier2Account, tier4Account, 1000);
         dfvv4.setOTCAllowance(tier2Account, tier5Account, 1000);
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         // Impersonate the participant to batch transfer tokens to multiple addresses
         address[] memory recipients = new address[](3);
@@ -370,7 +381,7 @@ contract DFVV4TestPenaltiesTest is Test {
      * Supply numbers match expected values.
      */
     function testTotalSupplyReduction() public {
-       // Impersonate the owner to call mint function
+        // Impersonate the owner to call mint function
         vm.startPrank(owner);
         // Mint tokens to tier 1 account and assert the balance
         dfvv4.mint(tier1Account, 1000);

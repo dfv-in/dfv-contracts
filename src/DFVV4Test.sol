@@ -105,10 +105,10 @@ contract DFVV4Test is
         );
         if (isOTC) {
             // reduce OTC allowance
-            OTCAllowance[owner][to] -= value;
+            OTCAllowance[owner][to] -= burnAmount;
         } else {
             // in case of just buying DFV from exchange, increase sell allowance
-            if(ExchangeWhiteLists[msg.sender]) {
+            if (ExchangeWhiteLists[msg.sender]) {
                 SellAllowance[to] += value;
             }
             if (burnAmount > 0) {
@@ -138,7 +138,7 @@ contract DFVV4Test is
             OTCAllowance[from][to] -= burnAmount;
         } else {
             // in case of buying DFV from exchange, increase sell allowance
-            if(ExchangeWhiteLists[from]) {
+            if (ExchangeWhiteLists[from]) {
                 SellAllowance[to] += value;
             }
             if (burnAmount > 0) {
@@ -224,9 +224,13 @@ contract DFVV4Test is
         }
         // 2. check if from, to is OTC whitelisted
         else {
+            DFVTiers fromTier = MemberTiers[from];
+            if (fromTier == DFVTiers.Community) {
+                return (0, true);
+            }
             // check if from is allowed to send token to all
             if (OTCAllowance[from][ALL_ADDRESSES] > 0) {
-                if(OTCAllowance[from][ALL_ADDRESSES] == INFINITY) {
+                if (OTCAllowance[from][ALL_ADDRESSES] == INFINITY) {
                     return (0, true);
                 }
                 // check if sending amount exceeds allowed amount, if not revert
@@ -240,7 +244,7 @@ contract DFVV4Test is
                 }
                 return (value, true);
             } else {
-                if(OTCAllowance[from][to] == INFINITY) {
+                if (OTCAllowance[from][to] == INFINITY) {
                     return (0, true);
                 }
                 // check if sending amount exceeds allowed amount, if not revert

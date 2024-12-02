@@ -70,13 +70,16 @@ contract AddPresale is Deployer {
         // prompt for the presale recipient address
         address presaleRecipient = vm.promptAddress("Enter the presale recipient address");
 
+        // prompt for the presale amount
+        uint256 presaleAmount = vm.promptUint("Enter the presale amount without 18 decimals");
+
         DFVV4(address(proxy)).mint(
             address(presaleRecipient),
-            67_337_400_000 * 1e18
+            presaleAmount * 1e18
         );
 
         // set the presale tier
-        uint256 presaleTier = vm.promptUint("Enter the presale tier (1, 2, 3, 4, or 5)");
+        uint256 presaleTier = vm.promptUint("Enter the presale tier (0, 1, 2, 3, 4, or 5)");
         DFVV4(address(proxy)).setTier(presaleRecipient, presaleTier);
 
         // set the allowed sell presale amount
@@ -93,11 +96,6 @@ contract SetSaleAllowance is Deployer {
         
         // prompt for the presale recipient address
         address allowanceAccount = vm.promptAddress("Enter the address to set the sale allowance for");
-
-        DFVV4(address(proxy)).mint(
-            address(allowanceAccount),
-            67_337_400_000 * 1e18
-        );
 
         // set the presale tier
         uint256 allowance = vm.promptUint("Enter the allowance DFV token amount in 18 decimals");
