@@ -75,6 +75,8 @@ contract DFVV4TestPenaltiesTest is Test {
         dfvv4.approve(address(exchange), type(uint256).max);
         vm.prank(tier4Account);
         dfvv4.approve(address(exchange), type(uint256).max);
+        vm.prank(tier5Account);
+        dfvv4.approve(address(exchange), type(uint256).max);
 
         // Emit the owner address for debugging purposes
         emit log_address(owner);
@@ -100,6 +102,7 @@ contract DFVV4TestPenaltiesTest is Test {
         // approve the transfer
         vm.prank(tier0Account);
         dfvv4.approve(tier1Account, 100);
+        vm.prank(tier1Account);
         dfvv4.transferFrom(tier0Account, tier1Account, 100);
         assertEq(dfvv4.balanceOf(tier0Account), 900);
     }
