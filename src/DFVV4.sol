@@ -108,7 +108,7 @@ contract DFVV4 is
             if (ExchangeWhiteLists[msg.sender]) {
                 SellAllowance[to] += value;
             } else {
-                SellAllowance[msg.sender] -= value;
+                SellAllowance[msg.sender] =  SellAllowance[msg.sender] < value ? 0 : SellAllowance[msg.sender] - value;
             }
             if (burnAmount > 0) {
                 // burn token from owner
@@ -145,7 +145,7 @@ contract DFVV4 is
             if (ExchangeWhiteLists[from]) {
                 SellAllowance[to] += value;
             } else {
-                SellAllowance[from] -= value;
+                SellAllowance[from] =  SellAllowance[from] < value ? 0 : SellAllowance[from] - value;
             }
             if (burnAmount > 0) {
                 // burn token from owner
