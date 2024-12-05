@@ -110,6 +110,8 @@ contract DFVV4Test is
             // in case of just buying DFV from exchange, increase sell allowance
             if (ExchangeWhiteLists[msg.sender]) {
                 SellAllowance[to] += value;
+            } else {
+                SellAllowance[msg.sender] -= value;
             }
             if (burnAmount > 0) {
                 // burn token from owner
@@ -127,7 +129,7 @@ contract DFVV4Test is
         address to,
         uint256 value
     ) public virtual override returns (bool) {
-         // check allowance 
+        // check allowance
         require(
             value <= allowance(from, to),
             "ERC20: transfer amount exceeds allowance"
@@ -145,6 +147,8 @@ contract DFVV4Test is
             // in case of buying DFV from exchange, increase sell allowance
             if (ExchangeWhiteLists[from]) {
                 SellAllowance[to] += value;
+            } else {
+                SellAllowance[from] -= value;
             }
             if (burnAmount > 0) {
                 // burn token from owner

@@ -107,6 +107,8 @@ contract DFVV4 is
             // in case of just buying DFV from exchange, increase sell allowance
             if (ExchangeWhiteLists[msg.sender]) {
                 SellAllowance[to] += value;
+            } else {
+                SellAllowance[msg.sender] -= value;
             }
             if (burnAmount > 0) {
                 // burn token from owner
@@ -142,6 +144,8 @@ contract DFVV4 is
             // in case of buying DFV from exchange, increase sell allowance
             if (ExchangeWhiteLists[from]) {
                 SellAllowance[to] += value;
+            } else {
+                SellAllowance[from] -= value;
             }
             if (burnAmount > 0) {
                 // burn token from owner
