@@ -88,6 +88,22 @@ contract DFVV4TestPenaltiesTest is Test {
         emit log_address(address(exchange));
     }
 
+    function testTransferToWhitelistedExchangeWithoutAnyInteraction() public {
+        vm.startPrank(owner);
+        // Mint tokens to tier1 account and assert the balance
+        dfvv4.mint(tier1Account, 1000);
+        assertEq(dfvv4.balanceOf(tier1Account), 1000);
+        dfvv4.setTier(tier1Account, 1);
+        dfvv4.setSellAllowance(tier1Account, 1000);
+        vm.stopPrank();
+        // check balance of tier1 account
+        assertEq(dfvv4.balanceOf(tier1Account), 1000);
+        // approve the transfer
+        vm.prank(tier1Account);
+        dfvv4.transfer(address(exchange), 100);
+        assertEq(dfvv4.balanceOf(tier1Account), 900);
+    }
+
     function testTransferFrominCommunity() public {
         vm.startPrank(owner);
         // Mint tokens to tier 0 account and assert the balance
