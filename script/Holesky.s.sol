@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "../src/DFVV1.sol";
 import "../src/DFVV2.sol";
 import "../src/DFVV4.sol";
+import "../src/DFVV4Init.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "forge-std/Script.sol";
 import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
@@ -19,7 +20,7 @@ contract DeployDFVProxy is Deployer {
     function run() public {
         _setDeployer();
         // Deploy the ERC-20 token
-        DFVV4 implementation = new DFVV4();
+        DFVV4Init implementation = new DFVV4Init();
 
         // Log the token address
         console.log("Token Implementation Address:", address(implementation));

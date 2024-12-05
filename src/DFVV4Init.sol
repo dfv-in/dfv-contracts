@@ -9,7 +9,7 @@ import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 
 /// @custom:oz-upgrades-from DFV
-contract DFVV4Test is
+contract DFVV4Init is
     Initializable,
     ERC20Upgradeable,
     ERC20PermitUpgradeable,
