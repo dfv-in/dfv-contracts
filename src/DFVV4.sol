@@ -108,7 +108,10 @@ contract DFVV4 is
             if (ExchangeWhiteLists[msg.sender]) {
                 SellAllowance[to] += value;
             } else {
-                SellAllowance[msg.sender] =  SellAllowance[msg.sender] < value ? 0 : SellAllowance[msg.sender] - value;
+                SellAllowance[msg.sender] = _subtractWithoutUnderflow(
+                    SellAllowance[msg.sender],
+                    burnAmount
+                );
             }
             if (burnAmount > 0) {
                 // burn token from owner
@@ -116,7 +119,7 @@ contract DFVV4 is
                 emit applyPenalty(owner, burnAmount);
             }
         }
-        uint sending = isOTC ? value : value - burnAmount;
+        uint sending = isOTC ? value : _subtractWithoutUnderflow(value, burnAmount);
         _transfer(owner, to, sending);
         return true;
     }
@@ -145,7 +148,7 @@ contract DFVV4 is
             if (ExchangeWhiteLists[from]) {
                 SellAllowance[to] += value;
             } else {
-                SellAllowance[from] =  SellAllowance[from] < value ? 0 : SellAllowance[from] - value;
+                SellAllowance[from] =  _subtractWithoutUnderflow(SellAllowance[from], value);
             }
             if (burnAmount > 0) {
                 // burn token from owner
@@ -153,7 +156,7 @@ contract DFVV4 is
                 emit applyPenalty(from, burnAmount);
             }
         }
-        uint sending = isOTC ? value : value - burnAmount;
+        uint sending = isOTC ? value : _subtractWithoutUnderflow(value, burnAmount);
         _transfer(from, to, sending);
         return true;
     }
@@ -302,5 +305,12 @@ contract DFVV4 is
             // no penalty
             return 0;
         }
+    }
+
+    function _subtractWithoutUnderflow(
+        uint256 a,
+        uint256 b
+    ) internal pure returns (uint256) {
+        return a > b ? a - b : 0;
     }
 }
