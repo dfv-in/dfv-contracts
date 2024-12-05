@@ -20,25 +20,31 @@ contract DeployDFVProxy is Deployer {
     function run() public {
         _setDeployer();
         // Deploy the ERC-20 token
-        DFV implementation = new DFV();
+        DFVV4 implementation = new DFVV4();
 
         // Log the token address
         console.log("Token Implementation Address:", address(implementation));
+
+        // prompt the deployer address to get admin access
+        address deployerAddress = vm.promptAddress("Enter the deployer address to grant admin access");
 
         // Deploy the proxy contract with the implementation address and initializer
         ERC1967Proxy proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeCall(
                 implementation.initialize,
-                0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448
+                deployerAddress
             )
         );
 
         // Log the proxy address
         console.log("UUPS Proxy Address:", address(proxy));
 
+        // prompt the DAO address to receive 67_337_400_000 DFV tokens for liquidity provision
+        address daoAddress = vm.promptAddress("Enter the DAO address to receive 67_337_400_000 DFV tokens for liquidity provision");
+
         DFV(address(proxy)).mint(
-            address(0xdF80e38699bb963a91c5F04F83378A597995932a),
+            daoAddress,
             67_337_400_000 * 1e18
         );
 
@@ -48,14 +54,20 @@ contract DeployDFVProxy is Deployer {
 }
 
 contract UpgradeDFVProxy is Deployer {
-    address proxy = 0x030c5FF9aaFd365fB2fe6215bE614a8Ee765eaFd;
+    address proxy;
     function run() public {
         _setDeployer();
+
+        // prompt for the proxy address
+        proxy = vm.promptAddress("Enter the DFV token proxy address to upgrade");
+
+        // prompt for the deployer address to grant admin access
+        address deployerAddress = vm.promptAddress("Enter the deployer address to grant admin access");
         
         // Log the token address
         //console.log("Token Implementation Address:", address(implementation));
 
-        Upgrades.upgradeProxy(address(proxy), "DFVV4.sol:DFVV4", "", 0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448);
+        Upgrades.upgradeProxy(address(proxy), "DFVV4.sol:DFVV4", "", deployerAddress);
 
         // Stop broadcasting calls from our address
         vm.stopBroadcast();
@@ -63,9 +75,13 @@ contract UpgradeDFVProxy is Deployer {
 }
 
 contract AddPresale is Deployer {
-    address proxy = 0x030c5FF9aaFd365fB2fe6215bE614a8Ee765eaFd;
+    address proxy;
     function run() public {
         _setDeployer();
+
+         // prompt for the proxy address
+        proxy = vm.promptAddress("Enter the DFV token proxy address to upgrade");
+
         
         // prompt for the presale recipient address
         address presaleRecipient = vm.promptAddress("Enter the presale recipient address");
