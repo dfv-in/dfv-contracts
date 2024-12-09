@@ -100,8 +100,7 @@ contract DFVV4Init is
         (uint256 burnAmount, bool isOTC) = allowedFund(
             msg.sender,
             to,
-            value,
-            balanceOf(owner)
+            value
         );
         if (isOTC) {
             // reduce OTC allowance
@@ -142,8 +141,7 @@ contract DFVV4Init is
         (uint256 burnAmount, bool isOTC) = allowedFund(
             from,
             to,
-            value,
-            balanceOf(from)
+            value
         );
         if (isOTC) {
             // reduce OTC allowance
@@ -226,8 +224,7 @@ contract DFVV4Init is
     function allowedFund(
         address from,
         address to,
-        uint256 value,
-        uint256 balance
+        uint256 value
     ) public view returns (uint256 burnAmount, bool isOTC) {
         // 1. check if to is from exchange whitelist
         if (ExchangeWhiteLists[to]) {
@@ -236,7 +233,7 @@ contract DFVV4Init is
             if (value > allowed) {
                 // apply penalty
                 DFVTiers tier = MemberTiers[from];
-                return (_applyPenalty(tier, balance), false);
+                return (_applyPenalty(tier, value), false);
             } else {
                 return (0, false);
             }
