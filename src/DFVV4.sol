@@ -223,7 +223,7 @@ contract DFVV4 is
             if (value > allowed) {
                 // apply penalty
                 DFVTiers tier = MemberTiers[from];
-                return (_applyPenalty(tier, value), false);
+                return (_applyPenalty(tier, value-allowed), false);
             } else {
                 return (0, false);
             }
@@ -279,23 +279,23 @@ contract DFVV4 is
 
     function _applyPenalty(
         DFVTiers tier,
-        uint256 value
+        uint256 exceeding
     ) internal pure returns (uint256 burnAmount) {
         if (tier == DFVTiers.BlindBelievers) {
-            // burn 99% of the value
-            return (value * 99) / 100;
+            // burn 99% of the Exceeding value
+            return (exceeding * 99) / 100;
         } else if (tier == DFVTiers.EthernalHodlers) {
             // burn 97% of the value
-            return (value * 97) / 100;
+            return (exceeding * 97) / 100;
         } else if (tier == DFVTiers.DiamondHands) {
             // burn 95% of the value
-            return (value * 95) / 100;
+            return (exceeding * 95) / 100;
         } else if (tier == DFVTiers.JustHodlers) {
             // burn 92% of the value
-            return (value * 92) / 100;
+            return (exceeding * 92) / 100;
         } else if (tier == DFVTiers.Airdrops) {
             // burn 99% of the value
-            return (value * 99) / 100;
+            return (exceeding * 99) / 100;
         }
         // all else are from community airdrops
         else {
