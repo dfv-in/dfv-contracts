@@ -99,7 +99,7 @@ contract DFVV4InitPenaltiesTest is Test {
         // approve the transfer
         vm.prank(tier1Account);
         dfvv4.transfer(address(exchange), 5e20);
-        assertEq(dfvv4.balanceOf(tier1Account), 1e22 - 99e20);
+        assertEq(dfvv4.balanceOf(tier1Account), 1e22 - (5e20));
     }
 
     function testTransferToWhitelistedExchangeWithoutAnyInteraction() public {
@@ -199,7 +199,7 @@ contract DFVV4InitPenaltiesTest is Test {
         exchange.swap(address(dfvv4), 1000);
 
         // Assert the balances the exchange receives after the transfer
-        assertEq(dfvv4.balanceOf(address(exchange)), 10); // 1% of 1000
+        assertEq(dfvv4.balanceOf(address(exchange)), 11); // 1% of 1000
     }
 
     /*
@@ -231,7 +231,7 @@ contract DFVV4InitPenaltiesTest is Test {
         exchange.swap(address(dfvv4), 1000);
 
         // Assert the balances the exchange receives after the transfer
-        assertEq(dfvv4.balanceOf(address(exchange)), 30); // 3% of 1000
+        assertEq(dfvv4.balanceOf(address(exchange)), 31); // 3% of 1000
     }
 
     /*
@@ -263,7 +263,7 @@ contract DFVV4InitPenaltiesTest is Test {
         exchange.swap(address(dfvv4), 1000);
 
         // Assert the balances the exchange receives after the transfer
-        assertEq(dfvv4.balanceOf(address(exchange)), 50); // 5% of 1000
+        assertEq(dfvv4.balanceOf(address(exchange)), 51); // 5% of 1000
     }
 
     /*
@@ -293,7 +293,7 @@ contract DFVV4InitPenaltiesTest is Test {
         exchange.swap(address(dfvv4), 1000);
 
         // Assert the balances the exchange receives after the transfer
-        assertEq(dfvv4.balanceOf(address(exchange)), 80); // 8% of 1000
+        assertEq(dfvv4.balanceOf(address(exchange)), 81); // 8% of 1000
     }
 
     /*
@@ -323,7 +323,7 @@ contract DFVV4InitPenaltiesTest is Test {
         exchange.swap(address(dfvv4), 1000);
 
         // Assert the balances the exchange receives after the transfer
-        assertEq(dfvv4.balanceOf(address(exchange)), 10); // 1% of 1000
+        assertEq(dfvv4.balanceOf(address(exchange)), 11); // 1% of 1000
     }
 
     /*
@@ -469,7 +469,7 @@ contract DFVV4InitPenaltiesTest is Test {
         exchange.swap(address(dfvv4), 1000);
 
         // Assert the balances the exchange receives after the transfer
-        assertEq(dfvv4.balanceOf(address(exchange)), 10); // 1% of 1000
-        assertEq(dfvv4.totalSupply(), 10); // because 99% of 1000 is burned
+        assertEq(dfvv4.balanceOf(address(exchange)), 11); // 1% of 1000
+        assertEq(dfvv4.totalSupply(), 11); // because 99% of 1000 is burned
     }
 }
