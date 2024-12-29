@@ -35,7 +35,6 @@ contract DFVV4 is
         Airdrops
     }
 
-
     /// mapping for whitelisting
     mapping(address => mapping(address => uint256)) public otcAllowance;
 

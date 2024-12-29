@@ -23,7 +23,7 @@ contract DFVV4Init is
     uint256 constant INFINITY = type(uint256).max;
     /// total supply of the token
     uint256 private constant MAX_SUPPLY = 138_840_000_000 * 10 ** 18; // 138.84 billion tokens with 18 decimals
-    
+
     /// enum for identifying tiers
     enum DFVTiers {
         // first value in Enum is the default value
@@ -34,7 +34,6 @@ contract DFVV4Init is
         JustHodlers,
         Airdrops
     }
-
 
     /// mapping for whitelisting
     mapping(address => mapping(address => uint256)) public otcAllowance;

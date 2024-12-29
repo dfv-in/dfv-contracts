@@ -5,9 +5,7 @@ import "../src/DFVV1.sol";
 import "../src/DFVV2.sol";
 import "../src/DFVV4.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import "forge-std/Script.sol";
 import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
-import "forge-std/console.sol";
 
 
 contract Deployer is Script {
