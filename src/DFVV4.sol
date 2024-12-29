@@ -24,8 +24,6 @@ contract DFVV4 is
     /// total supply of the token
     uint256 private constant MAX_SUPPLY = 138_840_000_000 * 10 ** 18; // 138.84 billion tokens with 18 decimals
 
-    address private _storedAddress; // Variable to store an address for testing state throughout upgrades
-
     /// enum for identifying tiers
     enum DFVTiers {
         // first value in Enum is the default value

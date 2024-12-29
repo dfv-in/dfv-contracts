@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/ERC20CappedUpgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
@@ -13,6 +14,7 @@ contract DFVV4Init is
     Initializable,
     ERC20Upgradeable,
     ERC20PermitUpgradeable,
+    ERC20CappedUpgradeable,
     UUPSUpgradeable,
     AccessControlUpgradeable
 {
@@ -21,9 +23,7 @@ contract DFVV4Init is
     uint256 constant INFINITY = type(uint256).max;
     /// total supply of the token
     uint256 private constant MAX_SUPPLY = 138_840_000_000 * 10 ** 18; // 138.84 billion tokens with 18 decimals
-
-    address private _storedAddress; // Variable to store an address for testing state throughout upgrades
-
+    
     /// enum for identifying tiers
     enum DFVTiers {
         // first value in Enum is the default value
@@ -35,24 +35,25 @@ contract DFVV4Init is
         Airdrops
     }
 
+
     /// mapping for whitelisting
-    mapping(address => mapping(address => uint256)) public OTCAllowance;
+    mapping(address => mapping(address => uint256)) public otcAllowance;
 
     /// mapping for exchange whitelisting
-    mapping(address => bool) public ExchangeWhiteLists;
+    mapping(address => bool) public exchangeWhiteLists;
 
     /// mapping to register tiers of each member
-    mapping(address => DFVTiers) public MemberTiers;
+    mapping(address => DFVTiers) public memberTiers;
 
     /// address for Allowed Liquidation Platforms
-    mapping(address => uint256) public SellAllowance;
+    mapping(address => uint256) public sellAllowance;
 
     /// events
     event OTCAllowed(address from, address to, uint256 amount);
     event ExchangeAllowed(address exchange, bool isAllowed);
     event SellAllowed(address exchange, uint256 amount);
     event TierSet(address member, uint256 tierRank);
-    event applyPenalty(address from, uint256 amount);
+    event ApplyPenalty(address from, uint256 amount);
 
     /// errors
     error OTCNotAllowed(
@@ -61,27 +62,17 @@ contract DFVV4Init is
         uint256 allowedAmount,
         uint256 sendingAmount
     );
-    error InvalidRole(bytes32 role, address sender);
-    error MaxSupplyReached(uint256 currentSupply, uint256 newSupply);
-
-    constructor() {
-    }
 
     function initialize(address initialOwner) public initializer {
         __ERC20_init("DeepFuckinValue", "DFV");
         __AccessControl_init();
         __ERC20Permit_init("DFVV4");
+        __ERC20Capped_init(MAX_SUPPLY);
         __UUPSUpgradeable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
     }
 
-    function mint(address to, uint256 amount) public {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
-            revert InvalidRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        }
-        if (totalSupply() + amount > MAX_SUPPLY) {
-            revert MaxSupplyReached(totalSupply(), totalSupply() + amount);
-        }
+    function mint(address to, uint256 amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _mint(to, amount);
     }
 
@@ -97,28 +88,28 @@ contract DFVV4Init is
     ) public virtual override returns (bool) {
         address owner = _msgSender();
         (uint256 burnAmount, bool isOTC) = allowedFund(
-            msg.sender,
+            owner,
             to,
             value,
             balanceOf(owner)
         );
         if (isOTC) {
             // reduce OTC allowance
-            OTCAllowance[owner][to] -= burnAmount;
+            otcAllowance[owner][to] -= burnAmount;
         } else {
             // in case of just buying DFV from exchange, increase sell allowance
-            if (ExchangeWhiteLists[msg.sender]) {
-                SellAllowance[to] += value;
+            if (exchangeWhiteLists[owner]) {
+                sellAllowance[to] += value;
             } else {
-                SellAllowance[msg.sender] = _subtractWithoutUnderflow(
-                    SellAllowance[msg.sender],
-                    value
+                sellAllowance[owner] = _subtractWithoutUnderflow(
+                    sellAllowance[owner],
+                    burnAmount
                 );
             }
             if (burnAmount > 0) {
                 // burn token from owner
                 _burn(owner, burnAmount);
-                emit applyPenalty(owner, burnAmount);
+                emit ApplyPenalty(owner, burnAmount);
             }
         }
         uint sending = isOTC
@@ -144,23 +135,24 @@ contract DFVV4Init is
             value,
             balanceOf(from)
         );
+        _spendAllowance(from, to, value);
         if (isOTC) {
             // reduce OTC allowance
-            OTCAllowance[from][to] -= burnAmount;
+            otcAllowance[from][to] -= burnAmount;
         } else {
             // in case of buying DFV from exchange, increase sell allowance
-            if (ExchangeWhiteLists[from]) {
-                SellAllowance[to] += value;
+            if (exchangeWhiteLists[from]) {
+                sellAllowance[to] += value;
             } else {
-                SellAllowance[from] = _subtractWithoutUnderflow(
-                    SellAllowance[from],
+                sellAllowance[from] = _subtractWithoutUnderflow(
+                    sellAllowance[from],
                     value
                 );
             }
             if (burnAmount > 0) {
                 // burn token from owner
                 _burn(from, burnAmount);
-                emit applyPenalty(from, burnAmount);
+                emit ApplyPenalty(from, burnAmount);
             }
         }
         uint sending = isOTC
@@ -176,46 +168,34 @@ contract DFVV4Init is
         address from,
         address to,
         uint256 amount
-    ) external {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
-            revert InvalidRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        }
-        OTCAllowance[from][to] = amount;
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        otcAllowance[from][to] = amount;
         emit OTCAllowed(from, to, amount);
     }
 
-    function setExchangeWhitelist(address exchange, bool isExchange) external {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
-            revert InvalidRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        }
-        ExchangeWhiteLists[exchange] = isExchange;
+    function setExchangeWhitelist(address exchange, bool isExchange) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        exchangeWhiteLists[exchange] = isExchange;
         emit ExchangeAllowed(exchange, isExchange);
     }
 
-    function setSellAllowance(address exchange, uint256 amount) external {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
-            revert InvalidRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        }
-        SellAllowance[exchange] = amount;
+    function setSellAllowance(address exchange, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        sellAllowance[exchange] = amount;
         emit SellAllowed(exchange, amount);
     }
 
-    function setTier(address member, uint tierRank) external {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
-            revert InvalidRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        }
+    function setTier(address member, uint tierRank) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (tierRank == 0) {
-            MemberTiers[member] = DFVTiers.Community;
+            memberTiers[member] = DFVTiers.Community;
         } else if (tierRank == 1) {
-            MemberTiers[member] = DFVTiers.BlindBelievers;
+            memberTiers[member] = DFVTiers.BlindBelievers;
         } else if (tierRank == 2) {
-            MemberTiers[member] = DFVTiers.EthernalHodlers;
+            memberTiers[member] = DFVTiers.EthernalHodlers;
         } else if (tierRank == 3) {
-            MemberTiers[member] = DFVTiers.DiamondHands;
+            memberTiers[member] = DFVTiers.DiamondHands;
         } else if (tierRank == 4) {
-            MemberTiers[member] = DFVTiers.JustHodlers;
+            memberTiers[member] = DFVTiers.JustHodlers;
         } else if (tierRank == 5) {
-            MemberTiers[member] = DFVTiers.Airdrops;
+            memberTiers[member] = DFVTiers.Airdrops;
         } else {
             return;
         }
@@ -229,12 +209,12 @@ contract DFVV4Init is
         uint256 balance
     ) public view returns (uint256 burnAmount, bool isOTC) {
         // 1. check if to is from exchange whitelist
-        if (ExchangeWhiteLists[to]) {
+        if (exchangeWhiteLists[to]) {
             // check sell amount
-            uint256 allowed = SellAllowance[from];
+            uint256 allowed = sellAllowance[from];
             if (value > allowed) {
                 // apply penalty
-                DFVTiers tier = MemberTiers[from];
+                DFVTiers tier = memberTiers[from];
                 return (_applyPenalty(tier, balance), false);
             } else {
                 return (0, false);
@@ -242,51 +222,41 @@ contract DFVV4Init is
         }
         // 2. check if from, to is OTC whitelisted
         else {
-            DFVTiers fromTier = MemberTiers[from];
+            DFVTiers fromTier = memberTiers[from];
             if (fromTier == DFVTiers.Community) {
                 return (0, true);
             }
             // check if from is allowed to send token to all
-            if (OTCAllowance[from][ALL_ADDRESSES] > 0) {
-                if (OTCAllowance[from][ALL_ADDRESSES] == INFINITY) {
+            if (otcAllowance[from][ALL_ADDRESSES] > 0) {
+                if (otcAllowance[from][ALL_ADDRESSES] == INFINITY) {
                     return (0, true);
                 }
                 // check if sending amount exceeds allowed amount, if not revert
-                else if (OTCAllowance[from][ALL_ADDRESSES] < value) {
+                else if (otcAllowance[from][ALL_ADDRESSES] < value) {
                     revert OTCNotAllowed(
                         from,
                         to,
-                        OTCAllowance[from][ALL_ADDRESSES],
+                        otcAllowance[from][ALL_ADDRESSES],
                         value
                     );
                 }
                 return (value, true);
             } else {
-                if (OTCAllowance[from][to] == INFINITY) {
+                if (otcAllowance[from][to] == INFINITY) {
                     return (0, true);
                 }
                 // check if sending amount exceeds allowed amount, if not revert
-                else if (OTCAllowance[from][to] < value) {
+                else if (otcAllowance[from][to] < value) {
                     revert OTCNotAllowed(
                         from,
                         to,
-                        OTCAllowance[from][to],
+                        otcAllowance[from][to],
                         value
                     );
                 }
                 return (value, true);
             }
         }
-    }
-
-    /// @dev Function to store an address
-    function storeAnAddress(address addr) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _storedAddress = addr;
-    }
-
-    /// @dev Function to retrieve the stored address
-    function storedAddress() public view returns (address) {
-        return _storedAddress;
     }
 
     function _applyPenalty(
@@ -321,5 +291,17 @@ contract DFVV4Init is
         uint256 b
     ) internal pure returns (uint256) {
         return a > b ? a - b : 0;
+    }
+
+    function _update(address from, address to, uint256 value) internal override (ERC20CappedUpgradeable, ERC20Upgradeable) {
+        super._update(from, to, value);
+
+        if (from == address(0)) {
+            uint256 maxSupply = cap();
+            uint256 supply = totalSupply();
+            if (supply > maxSupply) {
+                revert ERC20ExceededCap(supply, maxSupply);
+            }
+        }
     }
 }
