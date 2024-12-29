@@ -65,7 +65,6 @@ contract DFVV4Init is
     error MaxSupplyReached(uint256 currentSupply, uint256 newSupply);
 
     constructor() {
-        _disableInitializers();
     }
 
     function initialize(address initialOwner) public initializer {
