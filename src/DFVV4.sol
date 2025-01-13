@@ -62,7 +62,7 @@ contract DFVV4 is
         uint256 sendingAmount
     );
 
-    function initialize(address initialOwner) public initializer {
+    function initialize(address initialOwner) public reinitializer(4) {
         __ERC20_init("DeepFuckinValue", "DFV");
         __AccessControl_init();
         __ERC20Permit_init("DFVV4");
@@ -71,7 +71,10 @@ contract DFVV4 is
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
     }
 
-    function mint(address to, uint256 amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function mint(
+        address to,
+        uint256 amount
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _mint(to, amount);
     }
 
@@ -172,17 +175,26 @@ contract DFVV4 is
         emit OTCAllowed(from, to, amount);
     }
 
-    function setExchangeWhitelist(address exchange, bool isExchange) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setExchangeWhitelist(
+        address exchange,
+        bool isExchange
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         exchangeWhiteLists[exchange] = isExchange;
         emit ExchangeAllowed(exchange, isExchange);
     }
 
-    function setSellAllowance(address exchange, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setSellAllowance(
+        address exchange,
+        uint256 amount
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         sellAllowance[exchange] = amount;
         emit SellAllowed(exchange, amount);
     }
 
-    function setTier(address member, uint tierRank) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setTier(
+        address member,
+        uint tierRank
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (tierRank == 0) {
             memberTiers[member] = DFVTiers.Community;
         } else if (tierRank == 1) {
@@ -292,15 +304,11 @@ contract DFVV4 is
         return a > b ? a - b : 0;
     }
 
-    function _update(address from, address to, uint256 value) internal override (ERC20CappedUpgradeable, ERC20Upgradeable) {
-        super._update(from, to, value);
-
-        if (from == address(0)) {
-            uint256 maxSupply = cap();
-            uint256 supply = totalSupply();
-            if (supply > maxSupply) {
-                revert ERC20ExceededCap(supply, maxSupply);
-            }
-        }
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    ) internal override(ERC20CappedUpgradeable, ERC20Upgradeable) {
+        ERC20CappedUpgradeable._update(from, to, value);
     }
 }
