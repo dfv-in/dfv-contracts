@@ -7,6 +7,8 @@ import "../src/DFVV4.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
+import {Script, console} from "forge-std/Script.sol";
+
 
 contract Deployer is Script {
     function _setDeployer() internal {
@@ -97,7 +99,7 @@ contract GetTier is Deployer {
         address presaleRecipient = vm.promptAddress("Enter the presale recipient address");
 
         
-        DFVV4(address(proxy)).MemberTiers(presaleRecipient);
+        DFVV4(address(proxy)).memberTiers(presaleRecipient);
         vm.prank(presaleRecipient);
         DFVV4(address(proxy)).transfer(0xA0D465b1e213Ea5C4E099F998C5cACC68328690D, 10);
         vm.stopBroadcast();

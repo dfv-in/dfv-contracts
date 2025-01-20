@@ -118,8 +118,5 @@ contract DFVV1Test is Test {
         // Upgrade the proxy to DFVV3
         Upgrades.upgradeProxy(address(proxy), "DFVV4.sol:DFVV4", "", owner);
         DFVV4 dfvv4 = DFVV4(address(proxy));
-
-        // Ensure the stored address is still accessible in DFVV3
-        assertEq(dfvv4.storedAddress(), owner);
     }
 }

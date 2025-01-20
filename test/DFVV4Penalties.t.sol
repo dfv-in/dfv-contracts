@@ -145,13 +145,13 @@ contract DFVV4InitPenaltiesTest is Test {
         dfvv4.mint(tier1Account, 1000);
         assertEq(dfvv4.balanceOf(tier1Account), 1000);
         dfvv4.setSellAllowance(tier1Account, 1000);
-        assertEq(dfvv4.SellAllowance(tier1Account), 1000);
+        assertEq(dfvv4.sellAllowance(tier1Account), 1000);
         vm.stopPrank();
         vm.prank(tier1Account);
         exchange.swap(address(dfvv4), 100);
         assertEq(dfvv4.balanceOf(tier1Account), 900);
         // check sell allowance
-        assertEq(dfvv4.SellAllowance(tier1Account), 900);
+        assertEq(dfvv4.sellAllowance(tier1Account), 900);
 
         // apply penalty
         vm.prank(tier1Account);
