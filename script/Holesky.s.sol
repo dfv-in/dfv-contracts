@@ -7,6 +7,9 @@ import "../src/DFVV4.sol";
 import "../src/DFVV4Init.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "forge-std/Script.sol";
+import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import {TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+
 import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 contract Deployer is Script {
@@ -20,34 +23,41 @@ contract DeployDFVProxy is Deployer {
     function run() public {
         _setDeployer();
         // Deploy the ERC-20 token
-        DFVV4Init implementation = new DFVV4Init();
+        DFVV4 implementation = new DFVV4();
 
         // Log the token address
         console.log("Token Implementation Address:", address(implementation));
 
-        // prompt the deployer address to get admin access
-        address deployerAddress = vm.promptAddress(
-            "Enter the deployer address to grant admin access"
-        );
-
         // Deploy the proxy contract with the implementation address and initializer
-        ERC1967Proxy proxy = new ERC1967Proxy(
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             address(implementation),
-            abi.encodeCall(implementation.initialize, deployerAddress)
+            address(0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448),
+            abi.encodeCall(
+                implementation.initialize,
+                0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448
+            )
         );
 
         // Log the proxy address
         console.log("UUPS Proxy Address:", address(proxy));
 
-        // prompt the DAO address to receive 67_337_400_000 DFV tokens for liquidity provision
-        address daoAddress = vm.promptAddress(
-            "Enter the DAO address to receive 67_337_400_000 DFV tokens for liquidity provision"
-        );
-
-        DFV(address(proxy)).mint(daoAddress, 67_337_400_000 * 1e18);
+        DFV(address(proxy)).mint(
+            address(0xF5D46bDe4dC092aa637A7A04212Acb7aB030fa32),
+            138_840_000_000 * 10 ** 18
+        );        
+        
 
         // Stop broadcasting calls from our address
         vm.stopBroadcast();
+    }
+}
+
+contract ChangeProxyAdmin is Deployer {
+    function run() public {
+        _setDeployer();
+
+        ProxyAdmin admin = ProxyAdmin(0x2eBE38D1F1C672996CF22CC6C3880208d3c0e490);
+        admin.transferOwnership(0x4bbD0874e6a03568eB748c9b3d9ee2C57D74DD16);
     }
 }
 
