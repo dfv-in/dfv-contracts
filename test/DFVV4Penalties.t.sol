@@ -137,6 +137,24 @@ contract DFVV4InitPenaltiesTest is Test {
         assertEq(dfvv4.balanceOf(tier0Account), 900);
     }
 
+    function testApproval() public {
+        vm.startPrank(owner);
+        // Mint tokens to tier 0 account and assert the balance
+        dfvv4.mint(tier0Account, 1000);
+        assertEq(dfvv4.balanceOf(tier0Account), 1000);
+        vm.stopPrank();
+        vm.prank(tier0Account);
+        dfvv4.approve(tier1Account, 100);
+        assertEq(dfvv4.allowance(tier0Account, tier1Account), 100);
+        // make sure the approval is only applied to the tier 1 account only
+        assertEq(dfvv4.allowance(tier0Account, tier2Account), 0);
+        // make sure the transferFrom is not working on the tier 0 account
+        vm.expectRevert();
+        dfvv4.transferFrom(tier0Account, tier2Account, 100);
+
+        dfvv4.transferFrom(tier0Account, tier1Account, 100);
+    }
+
     function testUnauthorizedTokenTransferByTier1BurnsWithAccumulativeAllowance()
         public
     {
