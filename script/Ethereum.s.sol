@@ -46,10 +46,43 @@ contract DeployDFVProxy is Deployer {
         // Log the proxy address
         console.log("UUPS Proxy Address:", address(proxy));
 
+        // Add minting wallets with amounts
+        // Blind Believers
         DFV(address(proxy)).mint(
             address(0xF5D46bDe4dC092aa637A7A04212Acb7aB030fa32),
-            138_840_000_000 * 10 ** 18
+            20_826_000_000 * 10 ** 18
         );        
+        // Eternal Hodlers
+        DFV(address(proxy)).mint(
+            address(0x311a14194664B0B4c58433C33626dF0b32F14372),
+            13_884_000_000 * 10 ** 18
+        );
+        // Diamond Hands
+        DFV(address(proxy)).mint(
+            address(0x214eB48EB73BB0d79BAB2B4fD4C406A6547cba14),
+            6_942_000_000 * 10 ** 18
+        );
+        // Just Hodlers
+        DFV(address(proxy)).mint(
+            address(0xb0B43A98Af1C88c755673A81913707638D261392),
+            13_884_000_000 * 10 ** 18
+        );
+        // Community Airdrop
+        DFV(address(proxy)).mint(
+            address(0xCa628438886dcf4854cE6C6Db94e4B9fB47EE07b),
+            13_884_000_000 * 10 ** 18
+        );
+
+        // Uniswap Liquidity
+        DFV(address(proxy)).mint(
+            address(0xdF80e38699bb963a91c5F04F83378A597995932a),
+            67_337_400_000 * 10 ** 18
+        );
+        // Team
+        DFV(address(proxy)).mint(
+            address(0x7c837A5b15439725AdA552b7e36d642B60F119a1),
+            2_082_600_000 * 10 ** 18
+        );
 
         // Stop broadcasting calls from our address
         vm.stopBroadcast();
