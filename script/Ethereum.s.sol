@@ -4,14 +4,16 @@ pragma solidity ^0.8.19;
 import "../src/DFVV1.sol";
 import "../src/DFVV2.sol";
 import "../src/DFVV4.sol";
-import {TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import "../src/DFVPlain.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
-
 interface ITransparentUpgradeableProxy {
     function changeAdmin(address newAdmin) external;
+
     function upgradeTo(address newImplementation) external;
+
     function admin() external view returns (address);
 }
 
@@ -24,11 +26,139 @@ contract Deployer is Script {
     }
 }
 
+contract SetTier is Deployer {
+    function run() public {
+        _setDeployer();
+
+        address proxy = 0x3908b45Ce7395dBa8A76bFbc16ee99e85b9e88A3;
+
+        DFVV4(address(proxy)).setTier(
+            address(0xF5D46bDe4dC092aa637A7A04212Acb7aB030fa32),
+            0
+        );
+    }
+}
+
+contract MintDFVToMultisigs is Deployer {
+    function run() public {
+        _setDeployer();
+        address proxy = 0x06B5c84C6fB16B9C043cCbb5399Ac267f38e9E19;
+        // Add minting wallets with amounts
+        
+        // Blind Believers
+        DFV(address(proxy)).mint(
+            address(0xF5D46bDe4dC092aa637A7A04212Acb7aB030fa32),
+            20_826_000_000 * 10 ** 18
+        ); 
+               
+
+        uint256 higherGasPrice = 10 gwei; // Increase this value
+
+        vm.txGasPrice(higherGasPrice);
+        // Eternal Hodlers
+        DFV(address(proxy)).mint(
+            address(0x311a14194664B0B4c58433C33626dF0b32F14372),
+            13_884_000_000 * 10 ** 18
+        );
+        
+        // Diamond Hands
+        DFV(address(proxy)).mint(
+            address(0x214eB48EB73BB0d79BAB2B4fD4C406A6547cba14),
+            6_942_000_000 * 10 ** 18
+        );
+        // Just Hodlers
+        DFV(address(proxy)).mint(
+            address(0xb0B43A98Af1C88c755673A81913707638D261392),
+            13_884_000_000 * 10 ** 18
+        );
+        // Community Airdrop
+        DFV(address(proxy)).mint(
+            address(0xCa628438886dcf4854cE6C6Db94e4B9fB47EE07b),
+            13_884_000_000 * 10 ** 18
+        );
+
+        // Uniswap Liquidity
+        DFV(address(proxy)).mint(
+            address(0xdF80e38699bb963a91c5F04F83378A597995932a),
+            67_337_400_000 * 10 ** 18
+        );
+        // Team
+        DFV(address(proxy)).mint(
+            address(0x7c837A5b15439725AdA552b7e36d642B60F119a1),
+            2_082_600_000 * 10 ** 18
+        );
+        vm.stopBroadcast();
+    }
+}
+
+contract SetTierOnBlindBelievers is Deployer {
+    function run() public {
+        _setDeployer();
+        address proxy = 0x06B5c84C6fB16B9C043cCbb5399Ac267f38e9E19;
+
+        // Blind Believers
+        DFVV4Plain dfvv4 = DFVV4Plain(address(proxy));
+        /*
+        dfvv4.setTier(address(0xF5D46bDe4dC092aa637A7A04212Acb7aB030fa32), 1);
+        dfvv4.setTier(address(0x5279d4F55096a427b9121c6D642395a4f0Cd04a4), 1);
+        dfvv4.setTier(address(0x250e6E64276D5e9a1cA0B6C5B2B11c5139CD1Fc7), 1);
+        dfvv4.setTier(address(0xA68D88522E06c226f1a3B9D04A86d4CdaCE666fE), 1);
+        dfvv4.setTier(address(0x4Bd6300fc61Fa86b3d98A73CeE89bb54140b45e3), 1);
+        dfvv4.setTier(address(0x7b1D81Ba131F551DA2f70f7c2363b45DbD451d83), 1);
+        dfvv4.setTier(address(0xac783aEA23528862E2e4E7c9F8Bbc65bfAFe33B3), 1);
+        dfvv4.setTier(address(0xdf99908D22D2F18B50E15D962E77666da4A04717), 1); nonce 70
+        
+        dfvv4.setTier(address(0x3e46e4e203Bc6Aa3b3c6a2993C3cCEDeAF177f61), 1);
+        dfvv4.setTier(address(0xD94A8E20CbDD95D050f1356259E18C4Dd10f661A), 1);
+        dfvv4.setTier(address(0xe079E4AfB3FDd8F02B29C7A333D526b9c4C94B23), 1);
+        dfvv4.setTier(address(0x0aF20A5C0FFb89dAD55076309925014EaeBb5568), 1);
+        dfvv4.setTier(address(0x015FC9C8B333Aeb7A91Fd966bbFE6FF9A0ef8331), 1); nonce 75
+        
+        dfvv4.setTier(address(0x049E035Fb280b1df29e1c9BaE586F8E2E03311E1), 1);
+        dfvv4.setTier(address(0xE63cE53A4Ed7B5180311143AA3FE9131b4E0AB88), 1);
+        dfvv4.setTier(address(0xBD34Dc3FBb661612AAbCADaf758Caa6E22787297), 1);
+        dfvv4.setTier(address(0x60C7d0B2cD22e9D20BE93f9EFFBabF15fd599936), 1); nonce 79
+        dfvv4.setTier(address(0x6068efCd7DEdDED2A8444cbb218ffE71fa022D08), 1);
+        dfvv4.setTier(address(0xF52eB9b90C0CE6B037381aEa62BfA7A1B5519D31), 1);
+        dfvv4.setTier(address(0x128c21DFE98E7478e3cc6513AEF959BBD266Ed0F), 1); nonce 85
+        
+        dfvv4.setTier(address(0x255252421d42949843e6bdB40065d39c110c8191), 1);
+        dfvv4.setTier(address(0xC5DCb0A22551FbA93e260028813F0eef25bFfeA6), 1);
+        dfvv4.setTier(address(0xEaF85B68ce6AC308946580b907C4f84d0Abb07ee), 1);
+        dfvv4.setTier(address(0x63d97917852e12F1591A39D20ba8a2547169B298), 1); nonce 89
+        
+        dfvv4.setTier(address(0x8e80410Ae2c5a394D1a81364fB932dF86Eb4992d), 1);
+        dfvv4.setTier(address(0x88C3f21CeCd5846D55d9A82f5A40FBd88E2fC5a5), 1);
+        dfvv4.setTier(address(0x49e5c7645EaF21A531D933dE365ABDB01Ba3A2f6), 1);
+        dfvv4.setTier(address(0xACce9487EcF6F32325ad612df0D1f1288653905A), 1);
+        dfvv4.setTier(address(0x84240C190FB0761527bA3A490BFe2e002413CDe4), 1);
+        dfvv4.setTier(address(0xeE6343ED1b521440A3c952FCAAA1E487a0403DbC), 1); nonce 95
+        
+        dfvv4.setTier(address(0x147EC80822AFD4C6bC13aC116Ce3ae886099AB47), 1); nonce 96 
+        */
+        vm.stopBroadcast();
+    }
+}
+
+contract SetAdmin is Deployer {
+    function run() public {
+        _setDeployer();
+
+        DFVV4 implementation = DFVV4(
+            0x06B5c84C6fB16B9C043cCbb5399Ac267f38e9E19
+        );
+        implementation.grantRole(
+            0x00,
+            0x71B83d53FED1154901C58B8A7ff9569Ac1D45c25
+        );
+    }
+}
+
 contract DeployDFVProxy is Deployer {
     function run() public {
         _setDeployer();
         // Deploy the ERC-20 token
-        DFVV4 implementation = new DFVV4();
+        DFVV4Plain implementation = new DFVV4Plain();
 
         // Log the token address
         console.log("Token Implementation Address:", address(implementation));
@@ -51,7 +181,8 @@ contract DeployDFVProxy is Deployer {
         DFV(address(proxy)).mint(
             address(0xF5D46bDe4dC092aa637A7A04212Acb7aB030fa32),
             20_826_000_000 * 10 ** 18
-        );        
+        );
+    
         // Eternal Hodlers
         DFV(address(proxy)).mint(
             address(0x311a14194664B0B4c58433C33626dF0b32F14372),
@@ -90,7 +221,7 @@ contract DeployDFVProxy is Deployer {
 }
 
 contract UpgradeDFVProxy is Deployer {
-    address proxy = 0xA0D465b1e213Ea5C4E099F998C5cACC68328690D;
+    address proxy = 0x3908b45Ce7395dBa8A76bFbc16ee99e85b9e88A3;
 
     function run() public {
         _setDeployer();
@@ -100,13 +231,24 @@ contract UpgradeDFVProxy is Deployer {
 
         Upgrades.upgradeProxy(
             address(proxy),
-            "DFVV4.sol:DFVV4",
+            "DFVPlain.sol:DFVV4Plain",
             "",
             0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448
         );
 
+        /*
+        Upgrades.upgradeProxy(
+            address(proxy),
+            "DFVV4.sol:DFVV4",
+            "",
+            0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448
+        );
+        */
+
+       
         // Stop broadcasting calls from our address
         vm.stopBroadcast();
+       
     }
 }
 
