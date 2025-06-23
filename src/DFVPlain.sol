@@ -124,7 +124,7 @@ contract DFVV4Plain is
         address to,
         uint256 value
     ) public override returns (bool) {
-        require(memberTiers[_msgSender()] == DFVTiers.Community, "DFV: Only Community can transfer freely");
+        require(memberTiers[from] == DFVTiers.Community, "DFV: Only Community can transfer freely");
         address spender = _msgSender();
         _spendAllowance(from, spender, value);
         _transfer(from, to, value);

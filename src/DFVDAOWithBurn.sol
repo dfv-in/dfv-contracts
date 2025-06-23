@@ -92,6 +92,27 @@ contract DFVDAO is ERC20, ERC20Burnable, AccessControl {
         return true;
     }
 
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) public override returns (bool) {
+        address owner = from;
+        uint256 burnAmount = allowedFund(
+            from,
+            to,
+            value,
+            balanceOf(owner)
+        );
+        if (burnAmount > 0) {
+            // burn token from owner
+            _burn(from, burnAmount);
+        }
+        _spendAllowance(from, to, value);
+        _transfer(from, to, value - burnAmount);
+        return true;
+    }
+
     // DFV admin functions
     /// admin functions
     function setOTCAllowance(
