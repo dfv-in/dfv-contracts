@@ -188,6 +188,23 @@ contract DFVV4InitPenaltiesTest is Test {
         assertEq(dfvv4.balanceOf(tier0Account), 900);
     }
 
+    function testUnauthorizedTokenTransferFromByCommunityWorks() public {
+        vm.startPrank(owner);
+        // Mint tokens to tier 1 account and assert the balance
+        dfvv4.mint(owner, 1000);
+        dfvv4.mint(tier1Account, 1000);
+        assertEq(dfvv4.balanceOf(tier1Account), 1000);
+        dfvv4.setTier(tier1Account, 0);
+        dfvv4.setSellAllowance(tier1Account, 1000);
+        dfvv4.approve(tier2Account, 1000);
+        vm.stopPrank();
+        vm.startPrank(tier2Account);
+        dfvv4.transferFrom(owner, tier2Account, 100);
+        assertEq(dfvv4.balanceOf(tier1Account), 1000);
+        assertEq(dfvv4.balanceOf(tier2Account), 100);
+        vm.stopPrank();
+    }
+
     // Test the basic ERC20 functionality of the DFVV1 contract
     /*
      * 1. Unauthorized Token Transfers (Should Trigger Burn Penalty)

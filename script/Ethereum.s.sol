@@ -41,14 +41,29 @@ contract SetTier is Deployer {
 }
 
 contract SetBB is Deployer {
-    
+    function run() public {
+        _setDeployer();
+        address proxy = 0x06B5c84C6fB16B9C043cCbb5399Ac267f38e9E19;
+        DFVV4(address(proxy)).setTier(
+            address(0xA3785AFC932826BffA229fF5cf187BE3786a77a6),
+            0
+        );
+    }
 }
 
 contract GetTier is Deployer {
     function run() public {
         _setDeployer();
         address proxy = 0x06B5c84C6fB16B9C043cCbb5399Ac267f38e9E19;
-        DFVV4(address(proxy)).memberTiers(address(0x3068722291E90e7251D37b9b5Bc1E3D303885bb7));
+        DFVV4(address(proxy)).memberTiers(address(0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448));
+    }
+}
+
+contract SetSellAllowance is Deployer {
+    function run() public {
+        _setDeployer();
+        address proxy = 0x06B5c84C6fB16B9C043cCbb5399Ac267f38e9E19;
+        DFVV4(address(proxy)).setSellAllowance(address(0xA3785AFC932826BffA229fF5cf187BE3786a77a6), 100*1e18);
     }
 }
 
@@ -67,7 +82,7 @@ contract GetSellAllowance is Deployer {
     function run() public {
         _setDeployer();
         address proxy = 0x3908b45Ce7395dBa8A76bFbc16ee99e85b9e88A3;
-        DFVV4(address(proxy)).sellAllowance(address(0x3068722291E90e7251D37b9b5Bc1E3D303885bb7));
+        DFVV4(address(proxy)).sellAllowance(address(0xA3785AFC932826BffA229fF5cf187BE3786a77a6));
     }
 }
 
@@ -273,7 +288,7 @@ contract UpgradeDFVProxy is Deployer {
 
         Upgrades.upgradeProxy(
             address(proxy),
-            "DFVPlain.sol:DFVV4Plain",
+            "DFVV4Init.sol:DFVV4Init",
             "",
             0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448
         );
@@ -291,6 +306,14 @@ contract UpgradeDFVProxy is Deployer {
         // Stop broadcasting calls from our address
         vm.stopBroadcast();
        
+    }
+}
+
+contract MintTestDFV is Deployer {
+    function run() public {
+        _setDeployer();
+        address proxy = 0x06B5c84C6fB16B9C043cCbb5399Ac267f38e9E19;
+        DFVV4(address(proxy)).mint(address(0x84Dc6f8A9CB1E042A0E5A3b4a809c90BEB9d3448), 1000000000000000000);
     }
 }
 

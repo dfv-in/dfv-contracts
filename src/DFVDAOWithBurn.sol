@@ -6,6 +6,8 @@ import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC2
 import {IDAO} from "./interfaces/IDAO.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
+
+/// @custom:oz-upgrades-from DFV
 contract DFVDAO is ERC20, ERC20Burnable, AccessControl {
     /// address value to represent all addresses in whitelist
     address constant ALL = address(1);
@@ -62,6 +64,8 @@ contract DFVDAO is ERC20, ERC20Burnable, AccessControl {
         // Grant the minter role to the deployer
         //_grantRole(MINTER_ROLE, msg.sender);
     }
+
+    
 
     function mint(address to, uint256 amount) public {
         if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {

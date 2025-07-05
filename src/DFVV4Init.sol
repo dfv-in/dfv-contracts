@@ -35,9 +35,6 @@ contract DFVV4Init is
         Airdrops
     }
 
-    /// mapping for whitelisting
-    mapping(address => mapping(address => uint256)) public otcAllowance;
-
     /// mapping for exchange whitelisting
     mapping(address => bool) public exchangeWhiteLists;
 
@@ -48,19 +45,10 @@ contract DFVV4Init is
     mapping(address => uint256) public sellAllowance;
 
     /// events
-    event OTCAllowed(address from, address to, uint256 amount);
     event ExchangeAllowed(address exchange, bool isAllowed);
     event SellAllowed(address exchange, uint256 amount);
     event TierSet(address member, uint256 tierRank);
     event ApplyPenalty(address from, uint256 amount);
-
-    /// errors
-    error OTCNotAllowed(
-        address from,
-        address to,
-        uint256 allowedAmount,
-        uint256 sendingAmount
-    );
 
     function initialize(address initialOwner) public initializer {
         __ERC20_init("DeepFuckinValue", "DFV");
@@ -95,11 +83,8 @@ contract DFVV4Init is
             value,
             balanceOf(owner)
         );
-        if (isOTC) {
-            // reduce OTC allowance
-            otcAllowance[owner][to] -= burnAmount;
-        } else {
-            // in case of just buying DFV from exchange, increase sell allowance
+        if (!isOTC) {
+             // in case of just buying DFV from exchange, increase sell allowance
             if (exchangeWhiteLists[owner]) {
                 sellAllowance[to] += value;
             } else {
@@ -113,7 +98,8 @@ contract DFVV4Init is
                 _burn(owner, burnAmount);
                 emit ApplyPenalty(owner, burnAmount);
             }
-        }
+        } 
+
         uint sending = isOTC
             ? value
             : _subtractWithoutUnderflow(value, burnAmount);
@@ -138,11 +124,8 @@ contract DFVV4Init is
             balanceOf(from)
         );
         _spendAllowance(from, to, value);
-        if (isOTC) {
-            // reduce OTC allowance
-            otcAllowance[from][to] -= burnAmount;
-        } else {
-            // in case of buying DFV from exchange, increase sell allowance
+        if (!isOTC) {
+             // in case of buying DFV from exchange, increase sell allowance
             if (exchangeWhiteLists[from]) {
                 sellAllowance[to] += value;
             } else {
@@ -156,23 +139,12 @@ contract DFVV4Init is
                 _burn(from, burnAmount);
                 emit ApplyPenalty(from, burnAmount);
             }
-        }
+        } 
         uint sending = isOTC
             ? value
             : _subtractWithoutUnderflow(value, burnAmount);
         _transfer(from, to, sending);
         return true;
-    }
-
-    // DFV admin functions
-    /// admin functions
-    function setOTCAllowance(
-        address from,
-        address to,
-        uint256 amount
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        otcAllowance[from][to] = amount;
-        emit OTCAllowed(from, to, amount);
     }
 
     function setExchangeWhitelist(
@@ -233,40 +205,7 @@ contract DFVV4Init is
         }
         // 2. check if from, to is OTC whitelisted
         else {
-            DFVTiers fromTier = memberTiers[from];
-            if (fromTier == DFVTiers.Community) {
-                return (0, true);
-            }
-            // check if from is allowed to send token to all
-            if (otcAllowance[from][ALL_ADDRESSES] > 0) {
-                if (otcAllowance[from][ALL_ADDRESSES] == INFINITY) {
-                    return (0, true);
-                }
-                // check if sending amount exceeds allowed amount, if not revert
-                else if (otcAllowance[from][ALL_ADDRESSES] < value) {
-                    revert OTCNotAllowed(
-                        from,
-                        to,
-                        otcAllowance[from][ALL_ADDRESSES],
-                        value
-                    );
-                }
-                return (value, true);
-            } else {
-                if (otcAllowance[from][to] == INFINITY) {
-                    return (0, true);
-                }
-                // check if sending amount exceeds allowed amount, if not revert
-                else if (otcAllowance[from][to] < value) {
-                    revert OTCNotAllowed(
-                        from,
-                        to,
-                        otcAllowance[from][to],
-                        value
-                    );
-                }
-                return (value, true);
-            }
+            return (0, false);
         }
     }
 
